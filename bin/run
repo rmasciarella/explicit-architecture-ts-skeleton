@@ -1,16 +1,33 @@
-#!/usr/bin/env php
-<?php
+#!/usr/bin/env node
 
-$rootDir = __DIR__ . '/..';
-$returnVal = 0;
+/**
+ * Run script - Starts the application
+ *
+ * Usage: ./bin/run or npm run run
+ */
 
-$env = getenv('ENV') ?: 'dev';
-switch ($env) {
-    case 'dev':
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml run", $returnVal);
-        break;
-    default:
-        system("docker-compose -f $rootDir/build/container/prd/docker-compose.yml run", $returnVal);
+const { execSync } = require('child_process');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+const env = process.env.ENV || 'dev';
+
+function run() {
+    let command;
+
+    switch (env) {
+        case 'dev':
+            command = `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml run app npm run run`;
+            break;
+        default:
+            command = `docker-compose -f ${rootDir}/build/container/prd/docker-compose.yml run app npm run run`;
+    }
+
+    try {
+        execSync(command, { stdio: 'inherit' });
+    } catch (error) {
+        process.exit(error.status || 1);
+    }
 }
 
-exit($returnVal);
+run();

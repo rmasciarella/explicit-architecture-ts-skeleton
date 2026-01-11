@@ -6,4 +6,4 @@ services:
     working_dir: /opt/app
     build:
       context: ../../../
-      dockerfile: ./storage/container/ci/app.dockerfile
+      dockerfile: ./build/container/ci/app.dockerfile

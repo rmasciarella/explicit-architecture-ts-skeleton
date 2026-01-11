@@ -1,19 +1,43 @@
-#!/usr/bin/env php
-<?php
+#!/usr/bin/env node
 
-$rootDir = __DIR__ . '/..';
-$returnVal = 0;
+/**
+ * Test script - Runs the test suite
+ *
+ * Usage: ./bin/test or npm run test
+ */
 
-$env = getenv('ENV') ?: 'dev';
-$command = 'php vendor/bin/phpunit';
-switch ($env) {
-    case 'ci':
-    case 'dev':
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml run app " . $command, $returnVal);
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml down");
-        break;
-    default:
-        system($command, $returnVal);
+const { execSync } = require('child_process');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+const env = process.env.ENV || 'dev';
+const args = process.argv.slice(2).join(' ');
+
+function test() {
+    const command = `npm run test ${args}`;
+
+    switch (env) {
+        case 'ci':
+        case 'dev':
+            try {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml run app ${command}`,
+                    { stdio: 'inherit' }
+                );
+            } finally {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml down`,
+                    { stdio: 'inherit' }
+                );
+            }
+            break;
+        default:
+            execSync(command, { stdio: 'inherit' });
+    }
 }
 
-exit($returnVal);
+try {
+    test();
+} catch (error) {
+    process.exit(error.status || 1);
+}

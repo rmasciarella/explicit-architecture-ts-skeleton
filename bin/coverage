@@ -1,38 +1,54 @@
-#!/usr/bin/env php
-<?php
+#!/usr/bin/env node
 
-$rootDir = __DIR__ . '/..';
-$returnVal = 0;
+/**
+ * Coverage script - Runs tests with code coverage
+ *
+ * Usage: ./bin/coverage or npm run test:coverage
+ */
 
-$env = getenv('ENV') ?: 'dev';
-$coverageReportPath = 'var/coverage.clover.xml';
-$command = "php -dzend_extension=xdebug.so vendor/bin/phpunit --coverage-text --coverage-clover=$coverageReportPath";
-switch ($env) {
-    case 'ci':
-        // Scrutinizer requires remote containers to be able to use more than one container,
-        // and for this we can not use a shared volume. So we need to create a container with all the code and
-        // dependencies inside, and after the tests run we need to copy the coverage report to a local path.
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml run app " . $command, $returnVal);
-        copyCoverageReportToLocalPath($coverageReportPath);
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml down");
-        break;
-    case 'dev':
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml run app " . $command, $returnVal);
-        system("docker-compose -f $rootDir/build/container/$env/docker-compose.yml down");
-        break;
-    default:
-        system($command, $returnVal);
+const { execSync } = require('child_process');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+const env = process.env.ENV || 'dev';
+
+function coverage() {
+    const command = 'npm run test:coverage';
+
+    switch (env) {
+        case 'ci':
+            try {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml run app ${command}`,
+                    { stdio: 'inherit' }
+                );
+            } finally {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml down`,
+                    { stdio: 'inherit' }
+                );
+            }
+            break;
+        case 'dev':
+            try {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml run app ${command}`,
+                    { stdio: 'inherit' }
+                );
+            } finally {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml down`,
+                    { stdio: 'inherit' }
+                );
+            }
+            break;
+        default:
+            execSync(command, { stdio: 'inherit' });
+    }
 }
 
-exit($returnVal);
-
-function copyCoverageReportToLocalPath(string $coverageReportPath): void
-{
-    $hostBuildPath = '/home/scrutinizer/build';
-    $guestBuildPath = '/opt/app';
-    $output = [];
-    exec("docker ps -a | head -2 | tail -1 | awk '{print $1}'", $output);
-    $lastContainerId = $output[0];
-    system("docker commit $lastContainerId build-container");
-    system("docker run build-container cat $guestBuildPath/$coverageReportPath > $hostBuildPath/$coverageReportPath");
+try {
+    coverage();
+} catch (error) {
+    process.exit(error.status || 1);
 }
