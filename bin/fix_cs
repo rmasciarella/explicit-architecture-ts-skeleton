@@ -1,22 +1,41 @@
-#!/usr/bin/env php
-<?php
+#!/usr/bin/env node
 
-$rootDir = __DIR__ . '/..';
-$argumentList = $argv;
-unset($argumentList[0]);
-$returnVal = 0;
+/**
+ * Lint fix script - Runs ESLint and Prettier to fix code style
+ *
+ * Usage: ./bin/fix_cs or npm run lint:fix
+ */
 
-$env = getenv('ENV') ?: 'dev';
-$command = 'php vendor/bin/php-cs-fixer fix --verbose ' . implode(' ', $argumentList);
-switch ($env) {
-    case 'dev':
-        system(
-            "docker-compose -f $rootDir/build/container/$env/docker-compose.yml run --no-deps --rm app " . $command,
-            $returnVal
-        );
-        break;
-    default:
-        system($command, $returnVal);
+const { execSync } = require('child_process');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+const env = process.env.ENV || 'dev';
+const args = process.argv.slice(2).join(' ');
+
+function fixCs() {
+    // If --dry-run is passed, just check instead of fixing
+    const isDryRun = args.includes('--dry-run');
+    const command = isDryRun ? 'npm run lint && npm run format:check' : 'npm run lint:fix && npm run format';
+
+    switch (env) {
+        case 'dev':
+            try {
+                execSync(
+                    `docker-compose -f ${rootDir}/build/container/${env}/docker-compose.yml run --no-deps --rm app ${command}`,
+                    { stdio: 'inherit' }
+                );
+            } catch (error) {
+                process.exit(error.status || 1);
+            }
+            break;
+        default:
+            try {
+                execSync(command, { stdio: 'inherit' });
+            } catch (error) {
+                process.exit(error.status || 1);
+            }
+    }
 }
 
-exit($returnVal);
+fixCs();

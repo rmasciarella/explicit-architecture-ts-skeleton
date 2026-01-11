@@ -1,20 +1,24 @@
 # Project #
 ############
-/.php_cs.cache
+dist/
+*.tsbuildinfo
 
 # Tests #
 ############
-/coverage.clover.xml
-/.humbug.log
+coverage/
+*.log
 
-# Composer #
-############
-composer.phar
-vendor
+# Dependencies #
+################
+node_modules/
+package-lock.json
 
-# PHPStorm #
+# IDE #
 ############
-.idea
+.idea/
+.vscode/
+*.swp
+*.swo
 
 # OS generated files #
 ######################
@@ -26,3 +30,9 @@ vendor
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# Environment #
+###############
+.env
+.env.local
+.env.*.local

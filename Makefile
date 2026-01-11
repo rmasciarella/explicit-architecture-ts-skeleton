@@ -8,47 +8,58 @@ help:
 	@echo "Available commands:"
 	@grep '^[^#[:space:]].*:' Makefile | grep -v '^default' | grep -v '^_' | sed 's/://' | xargs -n 1 echo ' -'
 
+build:
+	npm run build
+
 build-container-dev:
-	docker build -t hgraca/lib-name:app.dev.php_7_1 -f ./build/container/dev/app.dockerfile ./build/container/dev
-	docker push hgraca/lib-name:app.php_7_1
+	docker build -t hgraca/lib-name:app.dev.node -f ./build/container/dev/app.dockerfile ./build/container/dev
+	docker push hgraca/lib-name:app.node
 
 build-container-prd:
-	docker build -t hgraca/lib-name:app.prd.php_7_1 -f ./build/container/prd/app.dockerfile ./build/container/prd
-	docker push hgraca/lib-name:app.php_7_1
+	docker build -t hgraca/lib-name:app.prd.node -f ./build/container/prd/app.dockerfile ./build/container/prd
+	docker push hgraca/lib-name:app.node
+
+clean:
+	npm run clean
 
 coverage:
-	bin/coverage
-	bin/fix_code_standards --dry-run
-
-cs-fix:
-	bin/fix_cs
+	npm run test:coverage
+	npm run lint
 
 dep-install:
-	composer install
+	npm install
 
 dep-update:
-	composer update
+	npm update
+
+format:
+	npm run format
+
+lint:
+	npm run lint
+
+lint-fix:
+	npm run lint:fix
 
 run:
-	bin/run
+	npm run run
 
 test:
-	bin/test
-#	bin/humbug
-	bin/fix_cs --dry-run
+	npm run test
+	npm run lint
 
 test-acc:
-	bin/test --testsuite acceptance
-	bin/fix_cs --dry-run
+	npm run test:acc
+	npm run lint
 
 test-func:
-	bin/test --testsuite functional
-	bin/fix_cs --dry-run
+	npm run test:func
+	npm run lint
 
 test-int:
-	bin/test --testsuite integration
-	bin/fix_cs --dry-run
+	npm run test:int
+	npm run lint
 
 test-unit:
-	bin/test --testsuite unit
-	bin/fix_cs --dry-run
+	npm run test:unit
+	npm run lint

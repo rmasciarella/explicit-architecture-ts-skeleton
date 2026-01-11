@@ -6,4 +6,4 @@ services:
     working_dir: /opt/app
     build:
       context: ../../../
-      dockerfile: ./storage/container/prd/app.dockerfile
+      dockerfile: ./build/container/prd/app.dockerfile
