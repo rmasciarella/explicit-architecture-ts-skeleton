@@ -1,0 +1,4 @@
+# This directory is for volatile artifacts
+# Such as logs, cache, temporary test databases, generated code, etc.
+# 
+# The contents of this directory should typically be ignored by version control.
